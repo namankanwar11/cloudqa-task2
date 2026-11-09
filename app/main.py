@@ -57,8 +57,8 @@ def create_app(settings=None, planner_factory=None):
 
     @app.get("/api/config")
     async def config():
-        return {"session_token": token, "model": settings.openai_model,
-            "api_key_configured": bool(settings.openai_api_key.get_secret_value()),
+        return {"session_token": token, "provider": settings.ai_provider, "model": settings.active_model,
+            "api_key_configured": bool(settings.active_key.get_secret_value()),
             "allow_localhost": settings.allow_localhost, "max_steps": settings.max_steps}
 
     def get_run(run_id):

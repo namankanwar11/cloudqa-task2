@@ -60,3 +60,9 @@ def test_provider_key_is_redaction_only_never_an_executor_secret():
         redact.resolve("{{OPENAI_API_KEY}}")
     with pytest.raises(PolicyError):
         redact.resolve("{{MISSING}}")
+
+def test_visible_text_assertion_needs_an_explicit_text_target():
+    from app.models import Assertion,SemanticTarget
+    with pytest.raises(ValidationError):
+        Assertion(id="result",description="Required message",kind="visible",
+            target=SemanticTarget(role="text",name="",scope_role=None,scope_name=None),expected="Required message")

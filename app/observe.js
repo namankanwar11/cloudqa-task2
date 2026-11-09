@@ -14,7 +14,7 @@ e => {
    e.getAttribute('alt') || e.getAttribute('title') || '';
  const visible = !!(e.getClientRects().length) && getComputedStyle(e).visibility!=='hidden';
  return {role, name:name.slice(0,200), visible, disabled:e.disabled||e.getAttribute('aria-disabled')==='true',
-   tag:e.tagName.toLowerCase(), type:e.type||'', submits:!!e.form && (e.type==='submit' || (e.tagName==='BUTTON' && !e.getAttribute('type'))),
+   tag:e.tagName.toLowerCase(), type:e.type||'', filled:('value' in e ? !!e.value : null), checked:(['checkbox','radio'].includes(e.type) ? e.checked : null), selected:e.tagName==='SELECT' ? Array.from(e.selectedOptions).map(o=>txt(o)) : null, submits:!!e.form && (e.type==='submit' || (e.tagName==='BUTTON' && !e.getAttribute('type'))),
    href:e.tagName==='A' ? e.href : null,
    options:e.tagName==='SELECT' ? Array.from(e.options).map(o=>txt(o)).slice(0,50) : null};
 }

@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><title>Independent workspace</title><body><h1>Review configuration</h1>
+<div><span id="nick-label">Nickname</span><article><input aria-labelledby="nick-label"></article></div>
+<select aria-label="Delivery speed"><option>Standard</option><option>Express</option></select>
+<label><input type="checkbox">Gift wrap</label>
+<button type="button" onclick="const i=document.querySelector('input[aria-labelledby]');const s=document.querySelector('select');const c=document.querySelector('input[type=checkbox]');document.querySelector('output').textContent=i.value==='Lira'&&s.value==='Express'&&c.checked?'Ready for review':'Configuration incomplete';">Preview configuration</button>
+<output aria-live="polite"></output></body></html>

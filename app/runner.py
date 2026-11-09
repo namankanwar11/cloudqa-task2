@@ -7,7 +7,8 @@ from uuid import uuid4
 from playwright.async_api import async_playwright
 from .browser import BrowserSession, OBSERVE
 from .models import Report, RunRequest, StepLog
-from .planner import OpenAIPlanner, DemoPlanner
+from .planner import OpenAIPlanner, DemoPlanner, provider_error_message
+from .providers import create_planner
 from .security import NavigationPolicy, PolicyError, Redactor, needs_approval, safe_url_text
 
 TERMINAL = {"PASS", "FAIL", "ERROR", "BLOCKED", "CANCELLED"}
@@ -16,7 +17,7 @@ class Runner:
     def __init__(self, settings, request: RunRequest, planner=None, run_id=None):
         self.settings, self.request = settings, request
         self.id = run_id or uuid4().hex
-        self.report = Report(id=self.id, status="QUEUED", mode=request.mode, reason="Waiting to start")
+        self.report = Report(id=self.id, status="QUEUED", mode="demo" if request.mode == "demo" else settings.ai_provider, reason="Waiting to start")
         self.planner = planner
         self.approval_event = asyncio.Event()
         self.approved = False
@@ -61,7 +62,7 @@ class Runner:
         self.report.status, self.report.reason = "RUNNING", "Opening isolated browser"
         self.save()
         redactor = Redactor({k: v.get_secret_value() for k, v in self.request.secrets.items()},
-                            redaction_only=[self.settings.openai_api_key.get_secret_value()])
+                            redaction_only=[self.settings.openai_api_key.get_secret_value(), self.settings.groq_api_key.get_secret_value()])
         policy = NavigationPolicy(self.request.url, self.settings.extra_allowed_hosts, self.settings.allow_localhost)
         try:
             async with asyncio.timeout(self.settings.run_timeout_seconds):
@@ -69,7 +70,7 @@ class Runner:
                 if self.request.mode == "demo" and not (self.request.url.startswith(("http://127.0.0.1:", "http://localhost:")) and self.request.url.endswith("/demo")):
                     raise PolicyError("Offline demo mode only supports this application's /demo sample")
                 if self.planner is None:
-                    self.planner = DemoPlanner() if self.request.mode == "demo" else OpenAIPlanner(self.settings)
+                    self.planner = DemoPlanner() if self.request.mode == "demo" else create_planner(self.settings)
                 async with async_playwright() as pw:
                     browser = await pw.chromium.launch(headless=self.request.headless)
                     try:
@@ -116,10 +117,16 @@ class Runner:
                                         # Assertion failure ends the run. The planner cannot weaken or retry it into PASS.
                                         if isinstance(ex, PolicyError):
                                             raise
-                                        self.report.assertions[assertion.id] = "FAIL"
-                                        self.report.status = "FAIL"
-                                        self.report.reason = redactor.clean(f"Assertion {assertion.id} failed: {assertion.description}")
-                                        status, detail = "FAIL", self.report.reason
+                                        if isinstance(ex, AssertionError) or "strict mode violation" in str(ex):
+                                            self.report.assertions[assertion.id] = "FAIL"
+                                            self.report.status = "FAIL"
+                                            self.report.reason = redactor.clean(f"Assertion {assertion.id} failed: {assertion.description}")
+                                            status, detail = "FAIL", self.report.reason
+                                        else:
+                                            self.report.assertions[assertion.id] = "ERROR"
+                                            self.report.status = "ERROR"
+                                            self.report.reason = f"Browser execution error while evaluating assertion {assertion.id} ({type(ex).__name__})"
+                                            status, detail = "ERROR", self.report.reason
                                     else:
                                         verified.add(assertion.id)
                                         self.report.assertions[assertion.id] = "PASS"
@@ -141,7 +148,7 @@ class Runner:
                                         await page.wait_for_load_state("domcontentloaded", timeout=self.settings.action_timeout_ms)
                                     finally:
                                         session.write_approved = False
-                                    detail = "Filled field (value redacted)" if action.kind == "fill" else redactor.clean(f"Executed {action.kind} on {meta.get('role', 'page')}: {meta.get('name', '')}")
+                                    detail = redactor.clean(f"Filled {meta.get('role', 'field')}: {meta.get('name', '')} (value redacted)") if action.kind == "fill" else redactor.clean(f"Executed {action.kind} on {meta.get('role', 'page')}: {meta.get('name', '')}")
                                 error = None
                             except PolicyError:
                                 raise
@@ -179,8 +186,11 @@ class Runner:
             self.report.status, self.report.reason = "CANCELLED", "Cancelled by user or server shutdown"
         except Exception as ex:
             self.report.status = "ERROR"
-            if not self.settings.openai_api_key.get_secret_value() and self.request.mode == "openai" and self.planner is None:
-                self.report.reason = "OPENAI_API_KEY is not configured. Add it to the local .env file."
+            provider_message = provider_error_message(ex, self.settings.ai_provider)
+            if provider_message:
+                self.report.reason = provider_message
+            elif not self.settings.active_key.get_secret_value() and self.request.mode != "demo" and self.planner is None:
+                self.report.reason = f"{self.settings.key_variable} is not configured. Add it to the local .env file."
             else:
                 # Never persist provider or browser exception bodies: they may echo secrets/page text.
                 self.report.reason = f"{type(ex).__name__}: planner or browser could not complete the run. Check configuration, API access and browser installation."

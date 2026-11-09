@@ -1,0 +1,3 @@
+<!doctype html><html lang="en"><body><h1>Worker policy</h1><output></output><script>
+(async()=>{try{const worker=await navigator.serviceWorker.register('/audit-worker.js');document.querySelector('output').textContent=worker?'Worker registered':'Worker blocked';}catch{document.querySelector('output').textContent='Worker blocked';}})();
+</script></body></html>

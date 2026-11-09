@@ -46,6 +46,8 @@ class BrowserSession:
                 self.refs[ref], self.metadata[ref] = handle, meta
                 row = {k: v for k, v in meta.items() if k not in ("href", "visible", "disabled")}
                 row["name"] = self.redactor.clean(row["name"])
+                if row.get("selected"):
+                    row["selected"] = [self.redactor.clean(x) for x in row["selected"]]
                 if row["options"]:
                     row["options"] = [self.redactor.clean(x) for x in row["options"]]
                 rows.append({"ref": ref, **row})
@@ -81,6 +83,8 @@ class BrowserSession:
             await expect(locator).to_have_text(expected, timeout=self.timeout)
         elif assertion.kind == "value":
             await expect(locator).to_have_value(expected, timeout=self.timeout)
+        elif assertion.kind == "selected":
+            await expect(locator.locator("option:checked")).to_have_text(expected, timeout=self.timeout)
         elif assertion.kind == "checked":
             await expect(locator).to_be_checked(checked=expected == "true", timeout=self.timeout)
 

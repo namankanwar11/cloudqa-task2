@@ -1,0 +1,4 @@
+<!doctype html><html lang="en"><body><h1>Channel policy</h1><output></output><script>
+const channel=new WebSocket(new URLSearchParams(location.search).get('channel'));
+channel.onclose=()=>document.querySelector('output').textContent='Channel closed';
+</script></body></html>

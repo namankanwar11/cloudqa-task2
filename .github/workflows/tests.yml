@@ -14,7 +14,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements-lock.txt
       - run: python -m playwright install --with-deps chromium
-      - run: python -m pytest --junitxml=artifacts/test-results.xml
+      - run: xvfb-run -a python -m pytest --junitxml=artifacts/test-results.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:

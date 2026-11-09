@@ -1,0 +1,2 @@
+<!doctype html><html lang="en"><body><h1></h1><script>document.querySelector('h1').textContent=document.cookie.includes('auditSession=')?'Prior session found':'No prior session';</script>
+<button type="button" onclick="document.cookie='auditSession=synthetic;path=/';document.querySelector('output').textContent='Cookie stored';">Store cookie</button><output></output></body></html>

@@ -1,6 +1,6 @@
 # Architecture and trust boundaries
 
-The OpenAI path is general and does not contain a PHPTravels workflow, site selectors,
+The Groq and OpenAI paths are general and do not contain a PHPTravels workflow, site selectors,
 credentials or login success rules. The offline DemoPlanner is a separate, explicitly selected
 local sample. It is never a fallback for AI failure.
 
@@ -9,8 +9,8 @@ local sample. It is never a fallback for AI failure.
 3. A request policy checks HTTP(S), exact allowed navigation hosts and resolved addresses.
 4. DOM observations collect visible controls, labels, ARIA role/name relationships, headings,
    nearby visible text and select options. Current element handles receive ephemeral refs.
-   Values of input controls are omitted. The model sees a redacted, bounded observation.
-5. OpenAI Responses API structured output parses into a Pydantic TestPlan. This initial
+   Typed text/password values are omitted; visible option text and button labels remain semantic evidence. The model sees a redacted, bounded observation.
+5. Provider structured output (Groq Chat Completions or OpenAI Responses) parses into a Pydantic TestPlan. This initial
    intent is frozen: required assertion IDs/conditions cannot change during replanning.
 6. The model chooses one allowlisted action from each fresh observation. No model-generated
    selectors, JavaScript, Python, shell or file operations are executed.
@@ -52,12 +52,12 @@ Credential/email fields require secret aliases; invented model credential litera
 The provider API key is redaction-only and cannot be resolved into a browser field.
 Registered secret aliases are resolved only by the executor, never sent as values to the
 planner. Environment secrets use TEST_SECRET_<ALIAS>. Secret values and email patterns are
-redacted from observations and reports. All control values are omitted from observations;
+redacted from observations and reports. Typed text/password values are omitted from observations;
 screenshots mask input/textarea/select and data-sensitive regions, plus visible registered
 secret text. Raw HTML, traces and exception bodies are not persisted.
 No automatic redactor can identify all unknown PII or secrets in arbitrary page text/images.
-The reduced page observation is sent to OpenAI; use synthetic data, avoid regulated data,
-and inspect artifacts before sharing. store=false is set for API responses, but do not
+The reduced page observation is sent to the selected provider; use synthetic data, avoid regulated data,
+and inspect artifacts before sharing. store=false is set for OpenAI responses, but do not
 interpret that as a promise of zero provider retention.
 
 FastAPI binds to loopback, checks Host and requires a process-local token for write APIs.
@@ -81,6 +81,24 @@ The in-memory run index resets on restart; report files remain on disk.
 - Network writes caused by background JavaScript outside the approved action window fail.
 - Maximum steps, replans, action timeout, API timeout and overall deadline bound execution.
   The overall deadline includes time waiting for user approval.
-- Assertions validate DOM visibility/text/value/checked state or an exact URL, not backend
+- Assertions validate DOM visibility/text/value/selected-label/checked state or an exact URL, not backend
   persistence or pixel-level correctness.
 - LLM variability, API costs, unavailable models and changed public websites remain risks.
+## Groq provider
+
+AI_PROVIDER selects Groq or OpenAI explicitly. No credential is sent to the other provider.
+Groq uses its OpenAI-compatible Chat Completions endpoint with strict JSON Schema, followed
+by Pydantic semantic validation. The OpenAI Python package is only the compatible HTTP client.
+The default Groq model is openai/gpt-oss-120b. The model name does not imply paid OpenAI API use.
+Groq observations are reduced to at most 100 prioritized semantic candidates. Input values
+remain absent; filled booleans, checked state and redacted visible selected-option text help
+the planner distinguish completed actions. Logs identify filled field names without values.
+There is one bounded semantic repair loop and a bounded rate-limit retry delay, all within
+the run deadline. Free-tier limits can prevent completion; ERROR is returned in that case.
+## Assertion failure classification
+
+Failed expected conditions and strict-locator ambiguity return FAIL.
+Execution exceptions while evaluating assertions return ERROR, rather than pretending the
+condition itself was disproved. A regression test injects a browser fault to enforce this.
+Textboxes use value assertions, native select labels use selected assertions, and rendered
+confirmation messages use visible/text assertions. The model can still misinterpret intent.

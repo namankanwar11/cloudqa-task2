@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><title>Independent claim fixture</title><body>
+<h1>Audit laboratory</h1>
+<p id="message">Exact confirmation</p><div hidden>Hidden message</div>
+<label><input type="radio" name="choice">Priority</label>
+<label><input type="checkbox" checked>Enabled flag</label>
+<button type="button" onclick="document.querySelector('#message').textContent=confirm('Fixture confirmation')?'Accepted':'Dialog dismissed'">Open dialog</button>
+<button type="button" onclick="const w=window.open('/preferences.html');const t=setInterval(()=>{if(w&&w.closed){document.querySelector('#message').textContent='Popup closed';clearInterval(t)}},30)">Open sample window</button>
+<div role="group" aria-label="First panel"><button>Continue</button></div>
+<div role="group" aria-label="Second panel"><button>Continue</button></div>
+</body></html>

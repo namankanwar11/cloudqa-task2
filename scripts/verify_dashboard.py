@@ -29,7 +29,7 @@ async def main():
         if not configured["api_key_configured"]:
             await page.get_by_role("button",name="Run AI test").click()
             await expect(page.locator("#status")).to_have_text("ERROR",timeout=30000)
-            await expect(page.locator("#reason")).to_contain_text("OPENAI_API_KEY")
+            await expect(page.locator("#reason")).to_contain_text("API_KEY")
             result["missing_key_feedback"]="ERROR correctly shown; no fabricated pass"
         else:
             result["missing_key_feedback"]="Not exercised: an API key is configured; no paid call was made by this smoke script."

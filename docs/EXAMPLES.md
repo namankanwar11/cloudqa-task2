@@ -11,16 +11,17 @@ Instruction: Open the page and verify the main heading
 "PHPTRAVELS live demo: travel booking software, no credit card" is visible.
 
 The heading was observed in a real Chromium browser on 2026-11-09. Public text may change.
-No PHPTravels login or AI-generated execution has yet been validated.
+The real Groq-driven heading assertion passed. PHPTravels login is not validated.
 
 ## Different public website
 
-URL: https://example.com
+URL: https://the-internet.herokuapp.com/login
 
-Instruction: Verify the heading "Example Domain" is visible.
+Instruction: Verify the heading "Login Page" is visible and the Username textbox is visible.
 
-This is an example, not a claim that the real model has been tested against that site.
-
+This was executed with real Groq planning and Chromium: PASS.
+Negative example: Verify the heading "CloudQA nonexistent customer dashboard" is visible.
+That was executed and returned FAIL as expected.
 ## Local fixtures (two PowerShell terminals)
 
 Terminal 1:

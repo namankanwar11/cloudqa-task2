@@ -1,64 +1,84 @@
-# Actual validation record — 2026-11-09
+# Actual validation — 2026-11-09
 
-Environment: Windows, Python 3.12.13, Playwright Chromium 156.
-Project and writable tool caches are on D. No live OpenAI key was available.
+## Latest claim-audit update
 
-## Executed checks
+See docs/CLAIM-AUDIT.md and artifacts/claim-audit-summary.json for the expanded claim audit.
+The final regular suite passed 74 cases (4 live cases deselected; 54.06 seconds).
+The post-fix live suite passed all four real Groq cases (237.47 seconds).
+A preceding repeated run had 1 failure and 3 passes; its XML was preserved.
+The audit fixed browser-error classification and clarified form assertion semantics, adding
+a selected-option-label assertion. Runtime checks now include headed mode, real DOM detachment,
+masked screenshot pixels, cookie isolation, WebSocket/service-worker/download controls,
+approval change/deadlines, API boundaries, dashboard/mobile/report links and safe report text.
 
-- Python compileall: application and tests compiled.
-- Pytest: 38 passed, 2 skipped. Skips are the explicit opt-in real OpenAI tests.
-- API/browser tests include real local login with fixture credentials, fill/select/check,
-  reordered/renamed DOM, assertion failure, skipped-assertion rejection, approval denial
-  and single-use tokens, cancellation, bounded replanning, exact URL assertions, blocked
-  unsafe navigation, secret redaction and HTTP API/report retrieval.
-- Credential/email fields require registered aliases; model-invented credential values are blocked.
-- The provider API key is redaction-only and cannot be resolved as an executor placeholder.
-- Real OpenAI SDK parsing/request schema exercised against a mocked HTTP transport;
-  no real AI completion or billing event is claimed.
-- Dashboard launched at http://127.0.0.1:8765. Playwright clicked the offline sample and
-  observed PASS, assertion evidence and a masked screenshot.
-- Mobile viewport 390 x 844: no horizontal overflow.
-- No frontend JavaScript runtime errors in the dashboard smoke run.
-- Missing API key: the dashboard returned ERROR with an actionable configuration message.
-- PHPTravels: real Chromium reached https://phptravels.com/demo and verified its known
-  public demo heading was visible. This is a read-only connectivity/DOM smoke check,
-  not natural-language planning validation. No login or demo registration was attempted.
-- Task 1 was rebuilt with 0 warnings/errors and its 9 xUnit browser tests passed again.
+The counts below are the earlier baseline and are retained as historical evidence.
 
-Machine-generated evidence (ignored by Git):
-- artifacts/test-results.xml
-- artifacts/ui-validation/result.json
-- artifacts/ui-validation/desktop.png
-- artifacts/ui-validation/mobile.png
-- artifacts/ui-validation/phptravels.png
-- artifacts/<run-id>/report.json and step screenshots
+Windows, Python 3.12.13, Playwright Chromium, Groq with openai/gpt-oss-120b.
+Project, dependencies, browser profiles and artifacts are on D.
 
-To rerun the dashboard smoke check, start the app in one terminal, then in another:
+## Latest executed results
+
+- Regular automated suite: 43 passed, 2 live-model tests deselected (17.59 seconds).
+- Real Groq model suite: 2 passed, 43 deselected (123.02 seconds).
+  Both workflows used natural-language instructions, real model responses and real Chromium:
+  customer login with fixture-only secret aliases, and preferences fill/select/check/save.
+- PHPTravels public heading: real Groq planning and browser assertion PASS.
+- A different public website, https://the-internet.herokuapp.com/login:
+  heading "Login Page" and Username field assertions PASS.
+- Deliberately nonexistent dashboard heading on that second site: FAIL as expected.
+- Full dashboard-to-Groq-to-Chromium workflow: PASS on the second public site; screenshot saved as artifacts/ui-validation/groq-live-dashboard.png.
+- Dashboard offline sample, desktop/mobile layout, JavaScript and provider configuration
+  checks passed; no horizontal overflow at 390 x 844.
+- Task 1 was separately rebuilt with 0 warnings/errors and all 9 xUnit tests passed.
+
+The fixture-only live tests automatically approve known local clicks. The dashboard requires
+explicit approval for every click. Public-site checks were read-only; unexpected clicks were
+denied. No PHPTravels registration, login, booking or purchase was performed.
+
+## Failures observed and handled
+
+- An earlier OpenAI attempt failed with HTTP 429, code credit_balance_exhausted,
+  type insufficient_quota. Both live tests ended as ERROR. The app now explains quota failures
+  separately from temporary rate limits without echoing provider response bodies.
+- Initial Groq development runs exposed an empty visible-text target and insufficient
+  action-history detail. Semantic validation and bounded schema repair were added; history now
+  identifies field names without values. Observations include filled/checked/selected state.
+  Final local live-model rerun passed both tests; this is not a guarantee of all future runs.
+- A proposed positive test on example.com expected an "Example Domain" heading.
+  It returned FAIL. Inspection confirmed that heading was absent on the current page.
+  That failure was preserved rather than changing the assertion into a pass.
+
+## Evidence (ignored by Git)
+
+- artifacts/test-results.xml — regular suite
+- artifacts/groq-live-tests.xml — real model suite
+- artifacts/groq-public-validation.json — PHPTravels and original example.com cases
+- artifacts/groq-second-site-validation.json — second-site positive and negative checks
+- artifacts/<run-id>/report.json — individual assertions, timings and step evidence
+- artifacts/ui-validation/ — masked screenshots and UI smoke results
+
+Run the regular suite with scripts/test.ps1. For the real model suite:
 ~~~powershell
-cd D:\Projects\CloudQA-Task2
-. .\scripts\env.ps1
-.\.venv\Scripts\python.exe -m scripts.verify_dashboard
+$env:RUN_LIVE_LLM = '1'
+.\.venv\Scripts\python.exe -m pytest -m live_llm -v
+Remove-Item Env:RUN_LIVE_LLM
 ~~~
-It expects port 8765 and ALLOW_LOCALHOST=true. It does not make a paid model call.
 
-## Still unvalidated
+## Still unvalidated / limitations
 
-- Real OpenAI planning, account/model availability, API rate limits and billing.
-- Real model reliability on unseen instructions and a different website.
-- PHPTravels login or any customer dashboard (no authorized credentials supplied).
-- Task 2 remote GitHub Actions execution. Its workflow is configured, not remotely run.
-- Linux/macOS execution, other browser engines, iframe/shadow-root and new-tab workflows.
-- Adversarial-site isolation, complete PII detection or exhaustive destructive-action detection.
+- PHPTravels customer login or dashboard (no authorized credentials supplied).
+- Task 2 remote GitHub CI. No Task 2 push has been performed; approval is required first.
+- Other OS/browser engines, iframe/shadow-root and new-tab workflows.
+- Exhaustive unfamiliar-website reliability, adversarial isolation or complete PII detection.
+- Real OpenAI success remains unvalidated because the tested key had no API credits.
 
-Before submission: configure a local API key and run the opt-in model tests and new
-instructions on an authorized second website. A scripted-provider PASS is not evidence
-of model generalization. The lack of live model validation is a material remaining step.
+Finite positive/negative cases do not prove arbitrary unseen-case generalization.
+Model output is variable and free-tier rate limits can cause execution ERROR.
+Test new instructions on authorized targets before recording.
 
-## Sources used for implementation
+## Implementation references
 
-- OpenAI structured outputs:
-  https://developers.openai.com/api/docs/guides/structured-outputs
-- Playwright semantic assertions/accessibility guidance:
-  https://playwright.dev/python/docs/aria-snapshots
-- Reference site inspected:
-  https://phptravels.com/demo
+- https://console.groq.com/docs/structured-outputs
+- https://console.groq.com/docs/openai
+- https://developers.openai.com/api/docs/guides/structured-outputs
+- https://playwright.dev/python/docs/aria-snapshots

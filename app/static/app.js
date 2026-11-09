@@ -16,7 +16,7 @@ async function start(demo=false){
     if($("email").value) secrets.CUSTOMER_EMAIL=$("email").value;
     if($("password").value) secrets.CUSTOMER_PASSWORD=$("password").value;
     if(demo){$("url").value=location.origin+"/demo";$("instruction").value="Verify the welcome heading is visible.";}
-    const request={url:demo?location.origin+"/demo":$("url").value,instruction:demo?"Verify the welcome heading is visible.":$("instruction").value,headless:!$("headed").checked,secrets,mode:demo?"demo":"openai"};
+    const request={url:demo?location.origin+"/demo":$("url").value,instruction:demo?"Verify the welcome heading is visible.":$("instruction").value,headless:!$("headed").checked,secrets,mode:demo?"demo":"ai"};
     const result=await api("/api/runs","POST",request);
     $("email").value="";$("password").value="";
     current=result.id;await poll();
@@ -63,4 +63,4 @@ $("demo-button").addEventListener("click",()=>start(true));
 $("approve").addEventListener("click",()=>decide(true));
 $("deny").addEventListener("click",()=>decide(false));
 $("cancel").addEventListener("click",async()=>{try{await api("/api/runs/"+current+"/cancel","POST");}catch(e){showError(e);}});
-api("/api/config").then(c=>{config=c;busy(false);$("model").textContent=c.model;$("config-note").textContent=c.api_key_configured?"OpenAI configured. Click actions pause for your approval.":"OpenAI key not configured. Add OPENAI_API_KEY to .env, then restart. Offline sample requires ALLOW_LOCALHOST=true.";}).catch(showError);
+api("/api/config").then(c=>{config=c;busy(false);$("model").textContent=c.provider+" · "+c.model;$("config-note").textContent=c.api_key_configured?"AI provider configured. Click actions pause for your approval.":"AI key not configured. Add the selected provider key to .env, then restart. Offline sample requires ALLOW_LOCALHOST=true.";}).catch(showError);

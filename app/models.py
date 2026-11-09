@@ -10,7 +10,7 @@ class RunRequest(Strict):
     headless: bool = True
     secrets: dict[str, SecretStr] = Field(default_factory=dict)
     # Offline demo is explicit and is never described as AI-generated.
-    mode: Literal["openai", "demo"] = "openai"
+    mode: Literal["ai", "openai", "demo"] = "ai"
 
 class SemanticTarget(Strict):
     role: str = Field(max_length=40)
@@ -22,12 +22,14 @@ class SemanticTarget(Strict):
 class Assertion(Strict):
     id: str = Field(min_length=1, max_length=40)
     description: str = Field(min_length=1, max_length=240)
-    kind: Literal["visible", "hidden", "text", "value", "checked", "url"]
+    kind: Literal["visible", "hidden", "text", "value", "selected", "checked", "url"]
     target: SemanticTarget | None
     expected: str = Field(max_length=500)
 
     @model_validator(mode="after")
     def valid_target(self):
+        if self.target and self.target.role == "text" and not self.target.name.strip():
+            raise ValueError("A text target needs the exact nonempty visible text in target.name")
         if self.kind != "url" and self.target is None:
             raise ValueError("Element assertion requires a semantic target")
         if self.kind == "checked" and self.expected not in ("true", "false"):

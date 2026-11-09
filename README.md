@@ -1,12 +1,11 @@
 # CloudQA Task 2 — AI Browser Test Runner
 
 A local FastAPI dashboard that turns natural-language instructions into bounded Playwright
-actions through OpenAI structured output. Browser-verified assertions determine the result;
+actions through Groq or OpenAI structured output. Browser-verified assertions determine the result;
 a model's claim of success does not.
 
 **Project:** D:\Projects\CloudQA-Task2
-**Current validation:** real browser execution/dashboard tested; real OpenAI planning awaits
-an API key. Offline sample mode is a fixed script and is clearly labelled, not an AI fallback.
+**Providers:** Groq (configured locally) and OpenAI (optional). The offline sample remains explicitly scripted.
 
 ## Run on this Windows machine
 
@@ -18,20 +17,21 @@ cd D:\Projects\CloudQA-Task2
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8765
 ~~~
 
-Open http://127.0.0.1:8765. The ignored .env currently has no API key and enables loopback
+Open http://127.0.0.1:8765. The ignored .env enables loopback
 only for the local sample. Click **Run offline sample** to verify browser execution.
-For natural-language AI execution, edit .env locally:
+For natural-language AI execution with Groq, edit .env locally:
 
 ~~~dotenv
-OPENAI_API_KEY=your_actual_key_here
-OPENAI_MODEL=gpt-4.1-mini
+AI_PROVIDER=groq
+GROQ_API_KEY=your_actual_groq_key_here
+GROQ_MODEL=openai/gpt-oss-120b
 ALLOW_LOCALHOST=true
 ~~~
 
 Restart the server after changing .env. Never paste the key into chat, source, screenshots
-or Git. Model availability is account-dependent; set OPENAI_MODEL to an accessible
-Responses/structured-output-capable model. API access and billing are separate from ChatGPT.
-No API call with a real key has been executed for this project yet.
+or Git. Model availability is account-dependent; set GROQ_MODEL (or OPENAI_MODEL for OpenAI) to an accessible
+structured-output-capable model. Groq free-tier limits apply; each test makes multiple requests.
+Real Groq validation and earlier OpenAI quota failures are recorded in docs/VALIDATION.md. Set AI_PROVIDER=openai to use OPENAI_API_KEY and OPENAI_MODEL instead.
 
 ## Fresh Windows installation
 
@@ -103,10 +103,12 @@ See docs/VALIDATION.md for actual results and unvalidated cases.
 ## Configuration
 
 .env.example lists all settings. Highlights:
-- OPENAI_API_KEY / OPENAI_MODEL: secret and configurable model.
+- AI_PROVIDER=groq|openai: explicitly selects the provider; no silent fallback.
+- GROQ_API_KEY / GROQ_MODEL: Groq secret and configurable model.
+- OPENAI_API_KEY / OPENAI_MODEL: optional OpenAI configuration.
 - MAX_STEPS=25 / MAX_REPLANS=3: bounded execution and recovery budgets.
 - ACTION_TIMEOUT_MS=5000 / RUN_TIMEOUT_SECONDS=180: overall deadline includes approval time.
-- API_TIMEOUT_SECONDS=40: individual API timeout; SDK retries are also bounded.
+- API_TIMEOUT_SECONDS=40: individual API timeout; Groq rate-limit retries are bounded and respect a capped Retry-After delay.
 - CAPTURE_SCREENSHOTS=true: masked screenshots; disable on sensitive targets.
 - EXTRA_ALLOWED_HOSTS: comma-separated exact hosts for redirects/SSO.
 - ALLOW_LOCALHOST=false: explicit opt-in for loopback; other private networks remain blocked.
@@ -122,7 +124,8 @@ service or an adversarial-site sandbox.
 app/
   main.py          FastAPI endpoints and local session guard
   models.py        strict Pydantic action/assertion contracts
-  planner.py       OpenAI structured planner and separate offline sample
+  planner.py       shared planning instructions, OpenAI and offline sample
+  providers.py     Groq structured adapter and provider selection
   browser.py       observations, allowed actions, assertion verification
   observe.js       generic semantic DOM extraction
   runner.py        bounded orchestration, approvals, reports
@@ -139,16 +142,18 @@ The Task 1 project remains separate at D:\CloudQA-Internship.
 
 ## GitHub and CI
 
-This repository includes .gitignore and .github/workflows/tests.yml. CI installs Python
-and Chromium on Ubuntu, executes the normal suite without an API key and uploads test results.
-Task 2 remote CI has not been run yet. To publish after creating an empty GitHub repository:
+Public repository: https://github.com/namankanwar11/cloudqa-task2
 
-~~~powershell
-git add .
-git commit -m "Build AI browser testing tool"
-git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/cloudqa-task2.git
-git push -u origin main
-~~~
+The workflow installs Python and Chromium on Ubuntu and runs the regular suite without
+API keys. Headed tests run under Xvfb. Real AI tests remain opt-in and are not run in CI.
+See the repository Actions tab for current remote results.
 
-Do not commit .env, .venv, artifacts or work. API keys must never enter Git history.
+Local validation: 74 regular tests passed and 4 real Groq tests passed after the fixes.
+The claim audit preserves earlier failed runs and describes remaining limitations.
+API keys, .env, virtual environments and generated reports are excluded from Git.
+
+## Claim-by-claim audit
+
+See docs/CLAIM-AUDIT.md for verified behaviors, evidence, the FAIL-vs-ERROR fix and remaining
+limits. Run scripts/test_all.ps1 for normal checks; add -IncludeLiveAI for real model cases
+and -IncludeTask1 to also build/test the separate Task 1 project.
