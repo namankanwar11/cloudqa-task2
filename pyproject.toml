@@ -1,0 +1,11 @@
+[project]
+name = "cloudqa-ai-browser-runner"
+version = "1.0.0"
+requires-python = ">=3.11"
+description = "Bounded AI browser testing with independently verified assertions"
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["live_llm: requires explicit RUN_LIVE_LLM=1 and a configured OpenAI key"]

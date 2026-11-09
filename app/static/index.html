@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CloudQA · AI Browser Lab</title><link rel="stylesheet" href="/static/style.css"><script src="/static/app.js" defer></script></head>
+<body><div class="shell"><header><a class="brand" href="/"><span class="mark">Q</span>CloudQA <span class="muted">/ browser lab</span></a><span class="badge">TASK 02 · AI AUTOMATION</span></header>
+<main><section class="intro"><div class="eyebrow">FROM INTENT TO EVIDENCE</div><h1>Describe the test.<br><span>Watch the browser prove it.</span></h1><p>Turn plain English into real browser actions, with explicit assertions and a trace you can inspect.</p></section>
+<div class="workspace"><section class="card composer"><div class="card-title"><span class="step">01</span><h2>Define a test</h2></div>
+<form id="test-form"><label for="url">Target website</label><input id="url" type="url" placeholder="https://phptravels.com/demo" required value="https://phptravels.com/demo"><label for="instruction">What should the browser test?</label><textarea id="instruction" rows="5" required placeholder="Open the page and verify its main heading is visible.">Open the page and verify the main heading "PHPTRAVELS live demo: travel booking software, no credit card" is visible.</textarea>
+<div class="options"><label class="check"><input id="headed" type="checkbox"> Show browser window</label><span id="model" class="muted">Loading configuration…</span></div>
+<details><summary>Credentials &amp; secret placeholders</summary><p class="hint">Use {{CUSTOMER_EMAIL}} and {{CUSTOMER_PASSWORD}} in the instruction. Values stay out of the planner prompt. Prefer environment secrets for repeated runs.</p><label for="email">CUSTOMER_EMAIL</label><input id="email" type="email" autocomplete="off"><label for="password">CUSTOMER_PASSWORD</label><input id="password" type="password" autocomplete="new-password"></details>
+<button id="run-button" disabled class="primary" type="submit">Run AI test <span>↗</span></button>
+<p id="config-note" class="hint"></p></form>
+<div class="sample"><span class="eyebrow">NO API KEY YET?</span><h3>Try the offline sample</h3><p>Verify the local demo heading using a fixed scripted planner. This checks browser execution, not AI reasoning.</p><button id="demo-button" disabled class="secondary">Run offline sample</button></div>
+</section>
+<section class="card results"><div class="card-title"><span class="step">02</span><h2>Execution evidence</h2><span id="status" class="status">READY</span></div>
+<div id="empty" class="empty"><div class="orbit">◎</div><h3>Ready when you are</h3><p>Step logs, assertions and masked screenshots will appear here. A model's claim alone can never mark a test as passed.</p></div>
+<div id="run-output" hidden><div class="run-meta"><span id="run-id"></span><span id="elapsed"></span></div><p id="reason"></p>
+<div id="approval" class="approval" hidden><h3>Review the next action</h3><p id="approval-text"></p><div class="button-row"><button id="approve" class="primary">Approve this action</button><button id="deny" class="secondary">Deny</button></div></div>
+<h3>Required assertions</h3><div id="assertions"></div><h3>Step timeline</h3><ol id="timeline"></ol>
+<div class="button-row"><button id="cancel" class="secondary">Cancel run</button><a id="download" class="download" hidden>Download JSON report ↗</a></div></div>
+<div id="error" role="alert" hidden></div></section></div>
+<footer><span>Real Chromium · Semantic discovery · Verified assertions</span><span>Local development tool. Test only sites you are authorized to automate.</span></footer></main></div></body></html>
