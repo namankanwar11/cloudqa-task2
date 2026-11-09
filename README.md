@@ -146,7 +146,9 @@ Public repository: https://github.com/namankanwar11/cloudqa-task2
 
 The workflow installs Python and Chromium on Ubuntu and runs the regular suite without
 API keys. Headed tests run under Xvfb. Real AI tests remain opt-in and are not run in CI.
-See the repository Actions tab for current remote results.
+Remote validation passed: **74 tests passed, 4 real-AI tests skipped** on Ubuntu.
+[Successful CI run](https://github.com/namankanwar11/cloudqa-task2/actions/runs/42631024526).
+See the repository Actions tab for later runs.
 
 Local validation: 74 regular tests passed and 4 real Groq tests passed after the fixes.
 The claim audit preserves earlier failed runs and describes remaining limitations.

@@ -1,5 +1,10 @@
 # Actual validation — 2026-11-09
 
+> Publication update: this document preserves the local audit performed before publication.
+> The project is now public at https://github.com/namankanwar11/cloudqa-task2.
+> See the README and GitHub Actions for current remote CI results.
+> Historical statements about no push or unvalidated remote CI describe the audit's original state.
+
 ## Latest claim-audit update
 
 See docs/CLAIM-AUDIT.md and artifacts/claim-audit-summary.json for the expanded claim audit.
